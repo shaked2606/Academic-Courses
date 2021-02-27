@@ -1,0 +1,71 @@
+Assignment 2 - Distributed System Programming
+
+Ofer Gross 304997067
+Shaked Elimelech 205701659
+
+Running Instructions
+1. Run Main.class
+2. Output link:
+https://jarwordcount.s3.amazonaws.com/FinalSortedOutput/part-r-00000
+
+How the program works?
+Step1 (MapReduce1): count single words from 1gram database and the total sum of words (c0). we marked it as *~* (see Step4).
+Step2 (MapReduce2): count pairs from 2gram database.
+Step3 (MapReduce3): count triplets from 3gram database.
+
+Step4 (Join1): 
+Input singlesMapper: <line_num, (w2 count)> 
+Output singlesMapper: <w2, count>
+
+Input tripletsMapper: <line_num, (w1 w2 w3 count)>
+Output tripletsMapper: <w2, (w1 w2 w3 c1)>
+						<w3, (w1 w2 w3 n1)>
+						<*~*, (w1 w2 w3 c0)>
+
+Input Reducer: <w2, [count, (w1 w2 w3 c1), ...]> 
+				...
+Output Reducer: <(w1 w2 w3), (c1 count)>
+				...
+
+
+Step5 (Join2): 
+Input pairsMapper: <line_num, (w1 w2 count)>
+Output pairsMapper: <w1 w2, count>
+
+Input tripletsMapper: <line_num, (w1 w2 w3 count)>
+Output tripletsMapper: <w1 w2, (w1 w2 w3 c2)>
+						<w2 w3, (w1 w2 w3 n2)>
+
+Input Reducer: <w1 w2, [count, (w1 w2 w3 c2), ...]> 
+				...
+Output Reducer: <(w1 w2 w3), (c2 count)>
+				...
+
+
+Step6 (FinalJoin):
+	input singlesMapper: <line_num, (w1 w2 w3 c1 count)>
+						...
+	output singlesMapper: <w1 w2 w3 ,(c1 count)>
+						...	
+
+	input pairsMapper: <line_num, (w1 w2 w3 c2 count)>
+						...
+	output pairsMapper: <w1 w2 w3, (c2 count)>
+						...
+
+	input tripletsMapper: <line_num, w1 w2 w3 count>
+	output tripletsMapper: <w1 w2 w3, (n3 count)>
+
+	input Reducer: <w1 w2 w3, [(c0 count), (c1 count), (c2 count),(n1 count), (n2 count), (n3 count)]>
+	output Reducer: <w1 w2 w3, prob>
+
+Step7 (FinalSort):
+	Get all the triplets with the probability and sort according to our compareTo function (using WritableComparable class).
+
+
+Scallability, Memory Assumptions
+	we assume that for single word we can save all triplets that the word appears. same case for pairs.
+
+Technical details
+Hadoop version: 2.10.0
+EC2 instance: M1.Medium

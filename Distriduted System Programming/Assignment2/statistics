@@ -1,0 +1,22 @@
+statistics
+MapReduce1
+	with local aggregation: 1258802
+	without local aggregation: 89414505
+MapReduce2
+	with local aggregation: 4928634
+	without local aggregation: 252069581
+MapReduce3
+	with local aggregation: 2804001
+	without local aggregation: 119255104
+Join1:
+	with local aggregation: 1057215
+	without local aggregation: 9057143 
+Join2:
+	with local aggregation: 7712891
+	without local aggregation: 1053279819
+FinalJoin:
+	with local aggregation: 28056738
+	without local aggregation: 55187076
+FinalSort:
+	with local aggregation: 2803960
+	without local aggregation:  2803960

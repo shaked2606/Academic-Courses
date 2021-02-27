@@ -1,0 +1,24 @@
+# All Targets
+all: task2b
+
+# Tool invocations
+# Executable "task0" depends on the files new_main.o util.o start.o
+task2b: task2b.o start.o util.o
+	ld -m elf_i386 start.o task2b.o util.o -o task2b
+
+# Depends on the source and header files
+task2b.o: task2b.c
+	gcc -g -m32 -Wall -ansi -c -nostdlib -fno-stack-protector task2b.c -o task2b.o
+
+util.o: util.c
+	gcc -g -m32 -Wall -ansi -c -nostdlib -fno-stack-protector util.c -o util.o
+
+start.o: start.s
+	nasm -f elf -o start.o start.s
+
+#tell make that "clean" is not a file name!
+.PHONY: clean
+
+#Clean the build directory
+clean: 
+	rm -f *.o task2b

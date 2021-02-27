@@ -1,0 +1,4 @@
+dist1 - 2 int variables in the stack with 4 bytes between them (addr5, addr6)
+dist2 - address of local is stored in stack, and p is &addr5 that stored in bss
+dist3 - foo() is stored in text segment, and p=&addr5 is stored in bss segment, they are pretty close
+

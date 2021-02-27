@@ -1,0 +1,5 @@
+#!/bin/bash
+
+
+read -p 'my_echo ' line
+echo $line

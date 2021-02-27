@@ -1,0 +1,68 @@
+Assignment 1 - Distributed System Programming
+
+Ofer Gross 304997067
+Shaked Elimelech 205701659
+
+Running Instructions
+	1. Unzip Assignment1.zip file.
+	2. Add input files to the current folder that was created.
+	3. Open Terminal via the current folder.
+	4. Enter command as follows: java -jar LocalApplication.jar InputFile1 InputFile2...InputFileN OutputFileName n terminate
+		a. Notice that terminate is an optional argument.
+	5. You can run more than single LocalApplication simultaneously (5 in our case, according to the number of InputFiles) by enter same command with different input files.
+
+How the program works?
+	1. Design:
+		We have 3 components: LocalApplications(Local program), Manager(single EC2 instance), Workers(EC2 instances).
+		We have 3 constant Queue: Local-to-Manager Queue, Manager-to-Workers Queue, Workers-to-Manager Queue.
+		In addition, we have n Queue, between Manager to n LocalApplication, each LocalApplication has his own Queue.
+
+	2. Flow:
+		a. LocalApplication connect and parse Json files.
+
+		b. LocalApplicaton sends message contains self-indentifier details (Bucket name, Manager-to-LocalApplication queue URL, number of reviews, n)
+
+		c. Manager creates Main thread and Worker-to-Manager thread.
+
+		d. Main Thread listens to Locals-to-Manager queue, and creates Tasks for the ThreadPool for each of LocalApplication message, except for the 'Terminate' message.
+
+		e. Each thread parses LocalApplication reviews, and send messages to Manager-to-Workers queue.
+
+		f. Threads initilaize workers, depends on how many workers are active.  
+		Workers analyze message from Manager-to-Workers queue, and send back the processed message to Workers-to-Manager queue.
+
+		g. Worker-to-Manager thread is listening to the queue Workers-to-Manager, and add outputs from workers to the suitable LocalApplication.
+
+		h. Each thread in the ThreadPool has his own LocalApplication he's responsible for checking if all the reviews he owns were analyzed. If so, the thread send back to LocalApplication message that the summery is ready. Thread returns to the ThreadPool, waiting for new Task.
+
+		i. When LocalApplication gets 'summery' message, he download summery file and convert to HTML format and creates outputfile.
+
+		j. LocalApplication delete Manager-to-LocalApplication queue, and his own bucket.
+
+		k. If LocalApplication has 'terminate' argument, he sends 'Terminate' message to LocalApplicatio-to-Manager queue, and LocalApplication disconnect.
+
+		l. 
+			- When main thread in Manager gets 'Terminate' message, he stops listening to LocalAppliction-to-Manger queue.
+			- Main thread is waiting for all current active LocalAppliction to get their summeries to shutdown the ThreadPool. After they get the summery, Main thread stops running and notify to Manager that he can terminate himself and delete queues(Manager-to-Workers, Workers-to-Manager-Local-to-Manager).
+			- Manager terminates all the active workers, delete queues, and terminates himself at last.
+
+Technical details
+	1. Ami: ami-02a057483ce3b0fa0 (Image created especially for the program).
+	2. Type of instance:
+		a. Manager: t2.Large.
+		b. Worker: t2.Large.
+	3. Total Running Time:
+		a. For n = 20 it took 6 minutes.
+		b. For n = 17 it took 5.5 minutes.
+	4. n used: n = 20.
+
+Security of credentials
+The credentials details are encoded in Base64, and transmitted inside the Script in bootStrapping inside the Jar file.
+
+Scallability
+The program is scallable. we have multiple threads to handle multiple clients. We are limited only by the maximal threads that can be run on single CPU. The step in the process that require the majority of time is the parsing big number of reviews for some LocalAppliction, and our program in this step supports simultaneously parsing.
+
+
+Persistence
+When worker recieve a message from the queue, he doesn't delete the message until he finish to process the message by the analysis algorithms and sending back the output to the Workers-to-Manager queue, so even if the worker dies or stuck in the middle, the message won't be deleted.
+Furthermore, we set visibilityTimeOut for each message, so if it will not be process in that given time, other worker will process the message.

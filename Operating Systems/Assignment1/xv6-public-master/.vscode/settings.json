@@ -1,6 +1,0 @@
-{
-    "files.associations": {
-        "spinlock.h": "c",
-        "*.tcc": "c"
-    }
-}

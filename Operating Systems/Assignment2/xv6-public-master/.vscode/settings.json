@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "sig_action.h": "c",
+        "signal.h": "c"
+    }
+}
